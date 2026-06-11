@@ -199,6 +199,8 @@ class ChessUI {
             undo: document.getElementById('undo-btn'),
             restart: document.getElementById('restart-btn'),
             timeSelect: document.getElementById('time-control'),
+            customMin: document.getElementById('custom-min'),
+            applyCustom: document.getElementById('apply-custom-time'),
             promoModal: document.getElementById('promotion-modal'),
             moveCount: document.getElementById('move-count')
         };
@@ -210,13 +212,24 @@ class ChessUI {
     setupEvents() {
         this.elements.restart.onclick = () => this.start();
         this.elements.undo.onclick = () => this.undo();
-        this.elements.timeSelect.onchange = () => this.start();
+        this.elements.timeSelect.onchange = () => {
+            this.elements.customMin.value = this.elements.timeSelect.value / 60;
+            this.start();
+        };
+        this.elements.applyCustom.onclick = () => {
+            const mins = parseInt(this.elements.customMin.value);
+            if (isNaN(mins) || mins < 1) return;
+            this.engine.baseTime = mins * 60;
+            this.start('custom');
+        };
     }
 
-    start() {
+    start(mode = 'preset') {
         clearInterval(this.timerInterval);
         this.engine.init();
-        this.engine.baseTime = parseInt(this.elements.timeSelect.value);
+        if (mode === 'preset') {
+            this.engine.baseTime = parseInt(this.elements.timeSelect.value);
+        }
         this.engine.timers = { white: this.engine.baseTime, black: this.engine.baseTime };
         this.selected = null;
         this.validMoves = [];
